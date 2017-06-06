@@ -16,7 +16,6 @@
 package jsinterfacesample.android.chrome.google.com.jsinterface_example;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,7 +36,6 @@ public class MainActivity extends Activity {
         }
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -53,7 +51,20 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_help:
-                mMainFragment.loadJavascript("showSecretMessage();");
+                mMainFragment.loadJavascript("(function(){return window.foo;})()");
+                mMainFragment.loadJavascript("(function(){return window;})()");
+                mMainFragment.loadJavascript("(function(){return window.document;})()");
+                mMainFragment.loadJavascript("(function(){return this;})()");
+                mMainFragment.loadJavascript("(function(){return \"this\";})()");
+                mMainFragment.loadJavascript("(function(){return document;})()");
+                mMainFragment.loadJavascript("(function(){return window.variable;})()");
+
+//                mMainFragment.loadJavascript("return this");
+//                mMainFragment.loadJavascript("return window.foo");
+//                mMainFragment.loadJavascript("return \"this\"");
+//                mMainFragment.loadJavascript("return document");
+//                mMainFragment.loadJavascript("return window.variable ");
+//                mMainFragment.loadJavascript("showSecretMessage();");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

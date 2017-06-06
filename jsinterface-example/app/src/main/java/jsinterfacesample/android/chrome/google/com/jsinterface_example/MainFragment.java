@@ -39,11 +39,12 @@ import java.io.StringReader;
 /**
  * Created by mattgaunt on 10/16/14.
  */
-public class MainFragment extends Fragment {
-
+public class MainFragment extends Fragment implements WebViewInterface2.OnWebViewLoadedListener {
+    private static final String TAG = "MainFragment";
     public static final String EXTRA_FROM_NOTIFICATION = "EXTRA_FROM_NOTIFICATION";
 
     private WebView mWebView;
+    private WebViewInterface2 mInterface;
 
     public MainFragment() {
     }
@@ -55,12 +56,11 @@ public class MainFragment extends Fragment {
 
         // Get reference of WebView from layout/activity_main.xml
         mWebView = (WebView) rootView.findViewById(R.id.fragment_main_webview);
+        mInterface = new WebViewInterface2(this);
 
         // Add Javascript Interface, this will expose "window.NotificationBind"
         // in Javascript
-        mWebView.addJavascriptInterface(
-                new NotificationBindObject(getActivity().getApplicationContext()),
-                "NotificationBind");
+        mWebView.addJavascriptInterface(new NotificationBindObject(getActivity().getApplicationContext()), "NotificationBind");
 
         setUpWebViewDefaults(mWebView);
 
@@ -78,7 +78,20 @@ public class MainFragment extends Fragment {
             mWebView.loadUrl(url);
         }
 
+        //loadScript("function(){window.foo = 'fdasfdsafsda'}()");
+        loadJavascript("window.variable = \"asd\";");
+        loadJavascript("window.foo = \"fdasfdsafsda\"");
+
+        loadScript("window.variable = \"variable\";");
+        loadScript("window.foo = \"foo\";");
+        mInterface.onWebViewDetected(mWebView);
+
         return rootView;
+    }
+
+    private void loadScript(String script) {
+        Log.e(TAG, "Loaded Javascript: " + script);
+        mWebView.loadUrl("javascript:" + script);
     }
 
     /**
@@ -177,13 +190,15 @@ public class MainFragment extends Fragment {
      *
      * @param javascript
      */
-    public void loadJavascript(String javascript) {
+    public void loadJavascript(final String javascript) {
+        Log.e(TAG, "loadJavascript: "+ javascript);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // In KitKat+ you should use the evaluateJavascript method
             mWebView.evaluateJavascript(javascript, new ValueCallback<String>() {
                 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
                 @Override
                 public void onReceiveValue(String s) {
+                    Log.e(TAG, "onReceiveValue: for script: " + javascript + " value: " + s);
                     JsonReader reader = new JsonReader(new StringReader(s));
 
                     // Must set lenient to parse single values
@@ -194,8 +209,7 @@ public class MainFragment extends Fragment {
                             if(reader.peek() == JsonToken.STRING) {
                                 String msg = reader.nextString();
                                 if(msg != null) {
-                                    Toast.makeText(getActivity().getApplicationContext(),
-                                            msg, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getActivity().getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                                 }
                             }
                         }
@@ -227,5 +241,14 @@ public class MainFragment extends Fragment {
 
         mWebView.goBack();
         return true;
+    }
+
+    @Override
+    public void onWebViewLoaded(WebView wv) {
+        /*loadJavascript("(function(){return window.foo;})()");
+        loadJavascript("return window.foo");
+        loadJavascript("return this");
+        loadJavascript("return \"this\"");
+        loadJavascript("return document");*/
     }
 }
